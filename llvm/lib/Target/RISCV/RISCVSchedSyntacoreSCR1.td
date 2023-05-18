@@ -24,7 +24,7 @@ def SyntacoreSCR1Model : SchedMachineModel {
   let UnsupportedFeatures = [HasStdExtZbkb, HasStdExtZbkc, HasStdExtZbkx,
                              HasStdExtZknd, HasStdExtZkne, HasStdExtZknh,
                              HasStdExtZksed, HasStdExtZksh, HasStdExtZkr,
-                             HasVInstructions];
+                             HasVInstructions, HasCustomFiona];
 }
 
 let SchedModel = SyntacoreSCR1Model in {
@@ -205,4 +205,5 @@ defm : UnsupportedSchedZbkb;
 defm : UnsupportedSchedZbkx;
 defm : UnsupportedSchedZfa;
 defm : UnsupportedSchedZfh;
+defm : UnsupportedSchedZfiona;
 }

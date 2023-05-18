@@ -591,3 +591,28 @@ foreach m = LMULList.m in {
 // Special registers
 def FFLAGS : RISCVReg<0, "fflags">;
 def FRM    : RISCVReg<0, "frm">;
+
+
+// Customized code for Fiona Electronic-Optical Accelerator co-simulation platform
+
+// vector: 16bits, 32 elements
+defvar fiona_v32ix = nxv32i32;
+defvar fiona_vlen  = 32;
+
+let RegAltNameIndices = [ABIRegAltName] in {
+    let isConstant = true in {
+        def FIOV0 : RISCVReg<0, "fiov0", ["fiov0", "fiov_zero"]>, DwarfRegNum[!add(0, 128)]>;
+    }
+    foreach Index = 1-31 in {
+        def FIOV#Index : RISCVReg<Index, "fiov"#Index, ["fiov"#Index]>, DwarfRegNum[!add(Index, 128)]>;
+    }
+}
+
+// The memory access alignment is 32 for temporay.
+class FIOVReg : RegisterClass<"RISCV", [fiona_v32ix], fiona_vlen, (add
+    (sequence "FIOV%u", 25, 31),
+    (sequence "FIOV%u", 8, 24),
+    (sequence "FIOV%u", 0, 7)
+)> {
+    let Size = !mul(32, fiona_vlen);
+}

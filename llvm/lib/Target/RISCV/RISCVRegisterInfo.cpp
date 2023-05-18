@@ -49,9 +49,14 @@ static_assert(RISCV::F31_D == RISCV::F0_D + 31,
 static_assert(RISCV::V1 == RISCV::V0 + 1, "Register list not consecutive");
 static_assert(RISCV::V31 == RISCV::V0 + 31, "Register list not consecutive");
 
+static_assert(RISCV::FIOV1 == RISCV::FIOV0 + 1,
+              "Register list not consecutive");
+static_assert(RISCV::FIOV31 == RISCV::FIOV0 + 31,
+              "Register list not consecutive");
+
 RISCVRegisterInfo::RISCVRegisterInfo(unsigned HwMode)
-    : RISCVGenRegisterInfo(RISCV::X1, /*DwarfFlavour*/0, /*EHFlavor*/0,
-                           /*PC*/0, HwMode) {}
+    : RISCVGenRegisterInfo(RISCV::X1, /*DwarfFlavour*/ 0, /*EHFlavor*/ 0,
+                           /*PC*/ 0, HwMode) {}
 
 const MCPhysReg *
 RISCVRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
@@ -110,6 +115,9 @@ BitVector RISCVRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   markSuperRegs(Reserved, RISCV::VXRM);
   markSuperRegs(Reserved, RISCV::VLENB); // vlenb (constant)
 
+  // Fiona Register
+  markSuperRegs(Reserved, RISCV::FIOV0); // zero
+
   // Floating point environment registers.
   markSuperRegs(Reserved, RISCV::FRM);
   markSuperRegs(Reserved, RISCV::FFLAGS);
@@ -130,20 +138,13 @@ const uint32_t *RISCVRegisterInfo::getNoPreservedMask() const {
 // Frame indexes representing locations of CSRs which are given a fixed location
 // by save/restore libcalls.
 static const std::pair<unsigned, int> FixedCSRFIMap[] = {
-  {/*ra*/  RISCV::X1,   -1},
-  {/*s0*/  RISCV::X8,   -2},
-  {/*s1*/  RISCV::X9,   -3},
-  {/*s2*/  RISCV::X18,  -4},
-  {/*s3*/  RISCV::X19,  -5},
-  {/*s4*/  RISCV::X20,  -6},
-  {/*s5*/  RISCV::X21,  -7},
-  {/*s6*/  RISCV::X22,  -8},
-  {/*s7*/  RISCV::X23,  -9},
-  {/*s8*/  RISCV::X24,  -10},
-  {/*s9*/  RISCV::X25,  -11},
-  {/*s10*/ RISCV::X26,  -12},
-  {/*s11*/ RISCV::X27,  -13}
-};
+    {/*ra*/ RISCV::X1, -1},   {/*s0*/ RISCV::X8, -2},
+    {/*s1*/ RISCV::X9, -3},   {/*s2*/ RISCV::X18, -4},
+    {/*s3*/ RISCV::X19, -5},  {/*s4*/ RISCV::X20, -6},
+    {/*s5*/ RISCV::X21, -7},  {/*s6*/ RISCV::X22, -8},
+    {/*s7*/ RISCV::X23, -9},  {/*s8*/ RISCV::X24, -10},
+    {/*s9*/ RISCV::X25, -11}, {/*s10*/ RISCV::X26, -12},
+    {/*s11*/ RISCV::X27, -13}};
 
 bool RISCVRegisterInfo::hasReservedSpillSlot(const MachineFunction &MF,
                                              Register Reg,
@@ -189,10 +190,12 @@ void RISCVRegisterInfo::adjustReg(MachineBasicBlock &MBB,
     Register ScratchReg = DestReg;
     if (DestReg == SrcReg)
       ScratchReg = MRI.createVirtualRegister(&RISCV::GPRRegClass);
-    TII->getVLENFactoredAmount(MF, MBB, II, DL, ScratchReg, ScalableValue, Flag);
+    TII->getVLENFactoredAmount(MF, MBB, II, DL, ScratchReg, ScalableValue,
+                               Flag);
     BuildMI(MBB, II, DL, TII->get(ScalableAdjOpc), DestReg)
-      .addReg(SrcReg).addReg(ScratchReg, RegState::Kill)
-      .setMIFlag(Flag);
+        .addReg(SrcReg)
+        .addReg(ScratchReg, RegState::Kill)
+        .setMIFlag(Flag);
     SrcReg = DestReg;
     KillSrcReg = true;
   }
@@ -399,8 +402,7 @@ bool RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   if (!IsRVVSpill)
     Offset += StackOffset::getFixed(MI.getOperand(FIOperandNum + 1).getImm());
 
-  if (Offset.getScalable() &&
-      ST.getRealMinVLen() == ST.getRealMaxVLen()) {
+  if (Offset.getScalable() && ST.getRealMinVLen() == ST.getRealMaxVLen()) {
     // For an exact VLEN value, scalable offsets become constant and thus
     // can be converted entirely into fixed offsets.
     int64_t FixedValue = Offset.getFixed();
@@ -445,13 +447,15 @@ bool RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
       DestReg = MRI.createVirtualRegister(&RISCV::GPRRegClass);
     adjustReg(*II->getParent(), II, DL, DestReg, FrameReg, Offset,
               MachineInstr::NoFlags, std::nullopt);
-    MI.getOperand(FIOperandNum).ChangeToRegister(DestReg, /*IsDef*/false,
-                                                 /*IsImp*/false,
-                                                 /*IsKill*/true);
+    MI.getOperand(FIOperandNum)
+        .ChangeToRegister(DestReg, /*IsDef*/ false,
+                          /*IsImp*/ false,
+                          /*IsKill*/ true);
   } else {
-    MI.getOperand(FIOperandNum).ChangeToRegister(FrameReg, /*IsDef*/false,
-                                                 /*IsImp*/false,
-                                                 /*IsKill*/false);
+    MI.getOperand(FIOperandNum)
+        .ChangeToRegister(FrameReg, /*IsDef*/ false,
+                          /*IsImp*/ false,
+                          /*IsKill*/ false);
   }
 
   // If after materializing the adjustment, we have a pointless ADDI, remove it
@@ -625,7 +629,7 @@ Register RISCVRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
 }
 
 const uint32_t *
-RISCVRegisterInfo::getCallPreservedMask(const MachineFunction & MF,
+RISCVRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
                                         CallingConv::ID CC) const {
   auto &Subtarget = MF.getSubtarget<RISCVSubtarget>();
 

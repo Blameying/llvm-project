@@ -431,6 +431,13 @@ def FeatureStdExtV
                        "'V' (Vector Extension for Application Processors)",
                        [FeatureStdExtZvl128b, FeatureStdExtZve64d]>;
 
+def FeatureCustomFiona  : SubtargetFeature<"fiona", "HasCustomFiona", "true",
+                        "'FIONA' (Vector Extension for Fiona Accelerator Framework)">;
+
+def HasCustomFiona      : Predicate<"Subtarget->hasCustomFiona()">,
+                            AssemblerPredicate<(all_of FeatureCustomFiona),
+                            "'FIONA' (Fiona Instructions)">;
+
 def HasVInstructions    : Predicate<"Subtarget->hasVInstructions()">,
       AssemblerPredicate<
           (any_of FeatureStdExtZve32x),
