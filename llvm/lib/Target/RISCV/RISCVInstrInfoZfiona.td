@@ -14,64 +14,65 @@
 //===----------------------------------------------------------------------===//
 include "RISCVInstrFormatsZfiona.td"
 
-class RVInstFiona_VVS<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs GPR:$rd), (ins FIOVReg:$rs1, FIOVReg:$rs2),
+class RVInstFiona_VVS<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs GPR:$rd), (ins FIOVReg:$rs1, FIOVReg:$rs2),
     opcodestr, "$rd, $rs1, $rs2">;
 
-class RVInstFiona_UVV<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs FIOVReg:$rd), (ins FIOVReg:$rs1),
-    opcodestr, "$rd, $rs1">;
+class RVInstFiona_UVV<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs FIOVReg:$rd), (ins FIOVReg:$rs1),
+    opcodestr, "$rd, $rs1"> {
+        let rs2 = 0;
+    }
 
-class RVInstFiona_VVV<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs FIOVReg:$rd), (ins FIOVReg:$rs1, FIOVReg:$rs2),
+class RVInstFiona_VVV<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs FIOVReg:$rd), (ins FIOVReg:$rs1, FIOVReg:$rs2),
     opcodestr, "$rd, $rs1, $rs2">;
 
-class RVInstFiona_SVV<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs FIOVReg:$rd), (ins FIOVReg:$rs1, GPR:$rs2),
+class RVInstFiona_SVV<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs FIOVReg:$rd), (ins FIOVReg:$rs1, GPR:$rs2),
     opcodestr, "$rd, $rs1, $rs2">;
 
-class RVInstFiona_CVS<bit<3> funct3, bits<7> funct7, bit<5> rs2, string opcodestr> : RVInstFiona_ConstantRS2<funct3,
-    funct7, rs2, FIONA_OPCODE,
-    (outs GPR:$rd), (ins FIOVReg:$rs1),
+class RVInstFiona_CVS<bits<3> funct3, bits<7> funct7, bits<5> rs2, string opcodestr> : RVInstFiona_ConstantRS2<funct3,
+    funct7, rs2, (outs GPR:$rd), (ins FIOVReg:$rs1),
     opcodestr, "$rd, $rs1">;
 
-class RVInstFiona_CVV<bit<3> funct3, bits<7> funct7, bit<5> rs2, string opcodestr> : RVInstFiona_ConstantRS2<funct3,
-    funct7, rs2, FIONA_OPCODE,
-    (outs FIOVReg:$rd), (ins FIOVReg:$rs1),
+class RVInstFiona_CVV<bits<3> funct3, bits<7> funct7, bits<5> rs2, string opcodestr> : RVInstFiona_ConstantRS2<funct3,
+    funct7, rs2, (outs FIOVReg:$rd), (ins FIOVReg:$rs1),
     opcodestr, "$rd, $rs1">;
 
-class RVInstFiona_USV<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs FIOVReg:$rd), (ins GPR:$rs1),
-    opcodestr, "$rd, $rs1">;
+class RVInstFiona_USV<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs FIOVReg:$rd), (ins GPR:$rs1),
+    opcodestr, "$rd, $rs1"> {
+        let rs2 = 0;
+    }
 
-class RVInstFiona_VSU<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs), (ins GPR:$rs1, FIOVReg:$rs2),
-    opcodestr, "$rs1, $rs2">;
+class RVInstFiona_VSU<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs), (ins GPR:$rs1, FIOVReg:$rs2),
+    opcodestr, "$rs1, $rs2"> {
+        let rd = 0;
+    }
 
-class RVInstFiona_USU<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs), (ins GPR:$rs1),
-    opcodestr, "$rs1">;
+class RVInstFiona_USU<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs), (ins GPR:$rs1),
+    opcodestr, "$rs1"> {
+        let rd = 0;
+        let rs2 = 0;
+    }
 
-class RVInstFiona_SSU<bit<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
-    funct7, FIONA_OPCODE,
-    (outs), (ins GPR:$rs1, GPR:$rs2),
-    opcodestr, "$rs1, $rs2">;
+class RVInstFiona_SSU<bits<3> funct3, bits<7> funct7, string opcodestr> : RVInstFiona<funct3,
+    funct7, (outs), (ins GPR:$rs1, GPR:$rs2),
+    opcodestr, "$rs1, $rs2"> {
+        let rd = 0;
+    }
 
-class RVInstFiona_USC<bit<3> funct3, bits<7> funct7, bits<5> rd, string opcodestr> : RVInstFiona_ConstantRD<funct3,
-    funct7, rd, FIONA_OPCODE,
-    (outs), (ins GPR:$rs1),
-    opcodestr, "$rs1">;
+class RVInstFiona_USC<bits<3> funct3, bits<7> funct7, bits<5> rd, string opcodestr> : RVInstFiona_ConstantRD<funct3,
+    funct7, rd, (outs), (ins GPR:$rs1),
+    opcodestr, "$rs1"> {
+        let rs2 = 0;
+    }
 
-class RVInstFiona_SSC<bit<3> funct3, bits<7> funct7, bits<5> rd, string opcodestr> : RVInstFiona_ConstantRD<funct3,
-    funct7, rd, FIONA_OPCODE,
-    (outs), (ins GPR:$rs1, GPR:$rs2),
+class RVInstFiona_SSC<bits<3> funct3, bits<7> funct7, bits<5> rd, string opcodestr> : RVInstFiona_ConstantRD<funct3,
+    funct7, rd, (outs), (ins GPR:$rs1, GPR:$rs2),
     opcodestr, "$rs1, $rs2">;
 
 

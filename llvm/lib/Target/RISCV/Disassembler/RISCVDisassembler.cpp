@@ -193,6 +193,17 @@ static DecodeStatus DecodeVRRegisterClass(MCInst &Inst, uint32_t RegNo,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus DecodeFIOVRegRegisterClass(MCInst &Inst, uint32_t RegNo,
+                                               uint64_t Address,
+                                               const MCDisassembler *Decoder) {
+  if (RegNo >= 32)
+    return MCDisassembler::Fail;
+
+  MCRegister Reg = RISCV::FIOV0 + RegNo;
+  Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
 static DecodeStatus DecodeVRM2RegisterClass(MCInst &Inst, uint32_t RegNo,
                                             uint64_t Address,
                                             const MCDisassembler *Decoder) {
@@ -602,8 +613,8 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
     }
     if (STI.hasFeature(RISCV::FeatureVendorXSfvcp)) {
       LLVM_DEBUG(dbgs() << "Trying SiFive VCIX custom opcode table:\n");
-      Result = decodeInstruction(DecoderTableXSfvcp32, MI, Insn, Address, this,
-                                 STI);
+      Result =
+          decodeInstruction(DecoderTableXSfvcp32, MI, Insn, Address, this, STI);
       if (Result != MCDisassembler::Fail)
         return Result;
     }
@@ -621,8 +632,7 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
   Insn = support::endian::read16le(Bytes.data());
 
   if (!STI.hasFeature(RISCV::Feature64Bit)) {
-    LLVM_DEBUG(
-        dbgs() << "Trying RISCV32Only_16 table (16-bit Instruction):\n");
+    LLVM_DEBUG(dbgs() << "Trying RISCV32Only_16 table (16-bit Instruction):\n");
     // Calling the auto-generated decoder function.
     Result = decodeInstruction(DecoderTableRISCV32Only_16, MI, Insn, Address,
                                this, STI);
@@ -634,8 +644,8 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
   if (STI.hasFeature(RISCV::FeatureStdExtZcmt)) {
     LLVM_DEBUG(
         dbgs() << "Trying Zcmt table (16-bit Table Jump Instructions):\n");
-    Result = decodeInstruction(DecoderTableRVZcmt16, MI, Insn, Address,
-                               this, STI);
+    Result =
+        decodeInstruction(DecoderTableRVZcmt16, MI, Insn, Address, this, STI);
     if (Result != MCDisassembler::Fail)
       return Result;
   }

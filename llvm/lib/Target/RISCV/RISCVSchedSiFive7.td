@@ -963,5 +963,4 @@ defm : UnsupportedSchedZbs;
 defm : UnsupportedSchedZbkb;
 defm : UnsupportedSchedZbkx;
 defm : UnsupportedSchedZfa;
-defm : UnsupportedSchedZfiona;
 }
