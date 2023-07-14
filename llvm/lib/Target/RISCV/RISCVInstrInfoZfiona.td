@@ -93,12 +93,38 @@ def MIN_V       : RVInstFiona_CVS<0b100, 0b0001011, 0b00001, "min.v">;
 def PRELU_V     : RVInstFiona_SVV<0b001, 0b0001111, "prelu.v">;
 def TANH_V      : RVInstFiona_CVV<0b000, 0b0001111, 0b00001, "tanh.v">;
 def SIGMOID_V   : RVInstFiona_CVV<0b000, 0b0001111, 0b00010, "sigmoid.v">;
-def LOAD_V      : RVInstFiona_USV<0b010, 0b0010000, "load.v">;
-def STORE_V     : RVInstFiona_VSU<0b010, 0b0010001, "store.v">;
 def SET_STRIDE  : RVInstFiona_USC<0b010, 0b0011000, 0b00000, "set.stride">;
 def SET_VLEN    : RVInstFiona_USC<0b010, 0b0011000, 0b00001, "set.vlen">;
 def SET_VMASK   : RVInstFiona_SSC<0b011, 0b0011000, 0b00010, "set.vmask">;
 def SET_MAT     : RVInstFiona_SSC<0b011, 0b0011000, 0b00011, "set.mat">;
 } // hasSideEffects = 0, mayLoad = 0, mayStore = 0
+
+let hasSideEffects = 1, mayLoad = 1, mayStore = 0 in {
+def LOAD_V      : RVInstFiona_USV<0b010, 0b0010000, "load.v">;
+}
+
+
+let hasSideEffects = 1, mayLoad = 0, mayStore = 1 in {
+def STORE_V     : RVInstFiona_VSU<0b010, 0b0010001, "store.v">;
+}
+
+def PseudoFionaLoad : Pseudo<(outs FIOVReg:$rd), (ins GPR:$addr), [], "pseudoFionaLoad", "$rd, [$addr]"> {
+  let hasSideEffects = 0;
+  let mayLoad = 1;
+  let mayStore = 0;
+  let isCodeGenOnly = 1;
+  let isAsmParserOnly = 0;
+}
+
+def PseudoFionaStore : Pseudo<(outs), (ins GPR:$addr, FIOVReg:$src), [], "pseudoFionaStore", "$src, [$addr]"> {
+  let hasSideEffects = 0;
+  let mayLoad = 0;
+  let mayStore = 1;
+  let isCodeGenOnly = 1;
+  let isAsmParserOnly = 0;
+}
+
+def : Pat<(nxv32i32 (load GPR:$addr)), (PseudoFionaLoad GPR:$addr)>;
+def : Pat<(store nxv32i32:$src, GPR:$addr), (PseudoFionaStore GPR:$addr, FIOVReg:$src)>;
 } //Predicates = [HasCustomFiona]
 

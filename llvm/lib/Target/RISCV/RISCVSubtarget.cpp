@@ -162,7 +162,8 @@ unsigned RISCVSubtarget::getMaxLMULForFixedLengthVectors() const {
 }
 
 bool RISCVSubtarget::useRVVForFixedLengthVectors() const {
-  return hasVInstructions() && getMinRVVVectorSizeInBits() != 0;
+  return (hasVInstructions() && getMinRVVVectorSizeInBits() != 0) ||
+         hasFionaInstructions();
 }
 
 bool RISCVSubtarget::enableSubRegLiveness() const {

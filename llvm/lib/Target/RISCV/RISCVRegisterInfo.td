@@ -596,7 +596,7 @@ def FRM    : RISCVReg<0, "frm">;
 // Customized code for Fiona Electronic-Optical Accelerator co-simulation platform
 
 // vector: 16bits, 32 elements
-defvar fiona_v32ix = nxv32i32;
+defvar fiona_v32ix = !listconcat(!listconcat(VM1VTs, VMaskVTs), [nxv32i32]);
 defvar fiona_vlen  = 32;
 
 let RegAltNameIndices = [ABIRegAltName] in {
@@ -609,7 +609,7 @@ let RegAltNameIndices = [ABIRegAltName] in {
 }
 
 // The memory access alignment is 32 for temporay.
-def FIOVReg : RegisterClass<"RISCV", [fiona_v32ix], fiona_vlen, (add
+def FIOVReg : RegisterClass<"RISCV", fiona_v32ix, fiona_vlen, (add
     (sequence "FIOV%u", 25, 31),
     (sequence "FIOV%u", 8, 24),
     (sequence "FIOV%u", 0, 7)
